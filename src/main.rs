@@ -28,7 +28,8 @@
 // modules
 pub mod models;
 pub mod schema;
-use schema::posts::dsl;
+use models::{NewPost, Post};
+use schema::posts::{self, dsl};
 
 // standard
 use std::env;
@@ -64,8 +65,27 @@ fn show_posts() {
     }
 }
 
-fn write_post(_title: &str, _body: &str) {
-    todo!()
+fn create_post(conn: &mut SqliteConnection, title: &str, body: &str) -> Post {
+    let new_post = NewPost { title, body };
+
+    diesel::insert_into(posts::table)
+        .values(&new_post)
+        .execute(conn)
+        .expect("Error saving new post");
+
+    // Fetch the last inserted post
+    posts::table
+        .order(posts::id.desc())
+        .first(conn)
+        .unwrap_or_else(|err| {
+            panic!("Error loading posts: {err}");
+        })
+}
+
+fn write_post(title: &str, body: &str) {
+    let mut connection = establish_connection();
+    let post = create_post(&mut connection, title, body);
+    println!("Saved post {title} with id {}", post.id);
 }
 
 fn main() {
