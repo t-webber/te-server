@@ -52,11 +52,11 @@ fn establish_connection() -> SqliteConnection {
 }
 
 fn show_posts() {
-    let mut connection = establish_connection();
+    let mut conn = establish_connection();
     let results = dsl::posts
         .filter(dsl::published.eq(true))
         .limit(5)
-        .load::<(i32, String, String, bool)>(&mut connection)
+        .load::<(i32, String, String, bool)>(&mut conn)
         .unwrap_or_else(|err| panic!("Error loading posts: {err}"));
 
     println!("Displaying {} posts", results.len());
@@ -83,9 +83,20 @@ fn create_post(conn: &mut SqliteConnection, title: &str, body: &str) -> Post {
 }
 
 fn write_post(title: &str, body: &str) {
-    let mut connection = establish_connection();
-    let post = create_post(&mut connection, title, body);
+    let mut conn = establish_connection();
+    let post = create_post(&mut conn, title, body);
     println!("Saved post {title} with id {}", post.id);
+}
+
+fn publish_post(post_id: &str) {
+    let parsed_id = post_id
+        .parse::<i32>()
+        .unwrap_or_else(|err| panic!("Invalid ID: {err}"));
+    let mut conn = establish_connection();
+    diesel::update(dsl::posts.find(parsed_id))
+        .set(dsl::published.eq(true))
+        .execute(&mut conn)
+        .expect("Error publishing post");
 }
 
 fn main() {
@@ -108,7 +119,15 @@ fn main() {
                 "Usage: cargo run -- create <title> <body>\nPlease provide a non empty title."
             );
         }
+    } else if action == "publish" {
+        if let Some(post_id) = env::args().nth(2) {
+            publish_post(&post_id);
+            println!("Post published");
+            show_posts();
+        } else {
+            println!("Usage: cargo run -- publish <post_id>");
+        }
     } else {
-        println!("Usage: cargo run -- [show|create <title> <body>]");
+        println!("Usage: cargo run -- [show|publish <post_id>|create <title> <body>]");
     }
 }
