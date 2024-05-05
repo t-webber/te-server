@@ -1,12 +1,12 @@
-#![allow(clippy::restriction)]
-
 // @generated automatically by Diesel CLI.
 
+#![allow(clippy::restriction)]
+
 diesel::table! {
-    posts (id) {
+    users (id) {
         id -> Integer,
-        title -> Text,
-        body -> Text,
-        published -> Bool,
+        firstname -> Nullable<Text>,
+        lastname -> Nullable<Text>,
+        email -> Text,
     }
 }

@@ -1,7 +1,0 @@
-# .env files
-.env
-
-# Database
-data/
-migrations/
-*.db

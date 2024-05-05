@@ -6,8 +6,8 @@ edition = "2021"
 [dependencies]
 diesel = { version = "2.1.6", features = ["sqlite"] }
 dotenvy = "0.15.0"
-
+serde = "1.0.200"
 
 [[bin]]
 name = "test"
-path = "src/test.rs"
+path = "src/lib.rs"
